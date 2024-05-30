@@ -1,3 +1,5 @@
+[![SDF Workspace Compiles](https://github.com/sdf-labs/tests/actions/workflows/compile-workspace.yml/badge.svg)](https://github.com/sdf-labs/tests/actions/workflows/compile-workspace.yml)
+
 # Official SDF Tests Library
 
 This SDF library contains the standard tests available in the default namespace for SDF data tests. As such, tests defined in this workspace do not need to be prefixed with the workspace name, they can be referenced directly. Here's an example:
