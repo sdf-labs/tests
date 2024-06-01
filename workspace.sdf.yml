@@ -2,7 +2,7 @@ workspace:
   name: sdf_test
   edition: "1.2"
   description: >
-    Standard testing library for SDF data tests. 
+    Standard testing library for SDF data tests.
     Check our docs for [data testing](https://docs.sdf.com/guide/data-quality/tests).
   includes:
     - path: macros/*.jinja
