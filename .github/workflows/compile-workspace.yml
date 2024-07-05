@@ -16,6 +16,7 @@ jobs:
         uses: sdf-labs/sdf-action@v0
         id: sdf
         with:
+          sdf_version: 0.3.1
           command: 'sdf compile'
   
       # Use the output from the `sdf` step
