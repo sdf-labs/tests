@@ -13,7 +13,8 @@
 
 {% macro in_accepted_values(severity, column_name,value_list) -%}
     {%- set condition_str = (value_list | join(', ')) | safe_str -%}
-    COUNT(CASE WHEN {{ column_name }} NOT IN ({{ value_list | join(', ') }}) THEN 1 ELSE NULL END) > 0 
+     
+     COUNT(CASE WHEN {{ column_name }} NOT IN ({{ value_list | join(', ') }}) THEN 1 ELSE NULL END) > 0 
     ==> 
     '{{severity}}: column {{ column_name }} has values outside accepted values {{condition_str}}'
 {%- endmacro %}
@@ -28,14 +29,14 @@
 
 {# should mention column_name in condition#}
 {% macro valid_scalar(severity, column_name, condition) -%}
-    COUNT(CASE WHEN NOT({{ condition}}) THEN 1 ELSE NULL END) > 0
+    COUNT(CASE WHEN NOT({{ condition }}) THEN 1 ELSE NULL END) > 0
 	==>
 	'{{severity}}: column {{ column_name }} violates condition ({{ condition | safe_str }})'
 {%- endmacro %}
 
 {# should mention column_name in condition#}
 {% macro valid_aggregate(severity, column_name, condition) -%}
-    NOT( {{condition}})
+    NOT({{ condition }})
 	==>
 	'{{severity}}: column {{ column_name }} violates condition ({{ condition| safe_str }})'
 {%- endmacro %}
