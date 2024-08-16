@@ -5,5 +5,4 @@ workspace:
     Standard testing library for SDF data tests.
     Check our docs for [data testing](https://docs.sdf.com/guide/data-quality/tests).
   includes:
-    - path: macros/*.jinja
-      type: metadata
+    - path: macros
