@@ -26,7 +26,6 @@
     '{{severity}}: column {{ column_name }} has unexpected values in {{condition_str}}'
 {%- endmacro %}
 
-
 {# should mention column_name in condition#}
 {% macro valid_scalar(severity, column_name, condition) -%}
     COUNT(CASE WHEN NOT({{ condition }}) THEN 1 ELSE NULL END) > 0
@@ -43,7 +42,7 @@
 
 
 {# ---------------------------------------------------------------------------------------------- #}
-{# number column checks: via  aggregate #}
+{# number column checks: via aggregate #}
 {% macro minimum(severity, column_name, value) -%}
     NOT(MIN({{column_name}}) >= {{value}}) 
 	==>
@@ -68,23 +67,29 @@
 	'{{severity}}: column {{ column_name }} has values greater than or equal to {{ value }}'
 {%- endmacro %}
 
-
 {% macro between(severity, column_name, min_value, max_value) -%}
     NOT(MIN({{column_name}}) >= {{min_value}}) or  MAX({{column_name}}) > {{max_value}}
 	==>
 	'{{severity}}: column {{ column_name }} has values outside of {{min_value | safe_str()}}..{{max_value| safe_str()}}'
 {%- endmacro %}
 
+{% macro fresh(severity, column_name, reference_value, value, date_part) %}
+    MAX(EXTRACT({{ date_part }} FROM {{ column_name }}) - {{ reference_value }} ) > {{value}}
+	==>
+	'{{severity}}: column {{ column_name }} has no values fresher than interval {{ value | safe_str }} {{ date_part }}' 
+{%- endmacro %}
+
+
 
 {# ---------------------------------------------------------------------------------------------- #}
-{# string column checks: via  aggregate #}
+{# string column checks: via aggregate #}
 {% macro max_length(severity, column_name, value) -%}
      MAX(LENGTH({{column_name}})) > {{value}}
 	==>
 	'{{severity}}: column {{ column_name }} has string lengths greater than {{ value | safe_str }}'
 {%- endmacro %}
 
-{# string column checks: via  aggregate #}
+{# string column checks: via aggregate #}
 {% macro min_length(severity, column_name, value) -%}
      MIN(LENGTH({{column_name}})) &lt; {{value}}
 	==>
@@ -92,14 +97,14 @@
 {%- endmacro %}
 
 
-{# string column checks: via  aggregate #}
+{# string column checks: via aggregate #}
 {% macro like(severity, column_name, value) -%}
     NOT(COUNT(CASE WHEN {{ column_name }} LIKE {{value}} THEN 1 ELSE NULL END)>0) 
 	==>
 	'{{severity}}: column {{ column_name }} has strings that are NOT like {{ value| safe_str }}'
 {%- endmacro %}
 
-{# string column checks: via  aggregate #}
+{# string column checks: via aggregate #}
 {% macro try_cast(severity, column_name, type_name) -%}
     NOT(COUNT(CASE WHEN TRY_CAST({{column_name}} AS {{type_name}}) IS NOT NULL THEN 1 ELSE NULL END)>0) 
 	==>
@@ -116,9 +121,8 @@
 {%- endmacro %}
 
 
-
 {# ---------------------------------------------------------------------------------------------- #}
-{# dbt generic tests #}
+{# generic tests #}
 
 
 
@@ -178,6 +182,56 @@
           FROM {{table_name}}
           GROUP BY {{ column_list | join(', ') }}
           HAVING COUNT(*) > 1) _subquery
+)
+==>
+    SELECT reason FROM {{verdict}}
+{% endmacro %}
+
+{% macro maximum_count(severity, table_name, max_count, column_list) %}
+
+{%- if column_list is none -%}
+{%- set verdict =  table_name ~ 'maximum_count' ~ max_count  | join('_')  | safe_id -%}
+{%- set grouped_columns = table_name ~ 'maximum_count' ~ max_count  | join('_')  | safe_id -%}
+{% else %}
+{%- set verdict =  table_name ~ 'maximum_count' ~ max_count ~ 'by' ~ column_list | join('_')  | safe_id -%}
+{%- set grouped_columns = 'GROUP BY ' ~ {{ column_list | join(', ') }} -%}
+{%- endif -%}
+
+{{verdict}} AS (
+    WITH RowCounts AS (
+        SELECT {{ 'COUNT(*)' ~ column_list | join(', ')}} 
+        FROM {{table_name}}
+        {{ grouped_columns }}
+        HAVING COUNT(*) > {{ min_count }}
+    )
+    SELECT
+        '{{severity}}: columns {{ (column_list | join(', '))| safe_str }} has row count above maximum threshold' AS reason
+    FROM RowCounts
+)
+==>
+    SELECT reason FROM {{verdict}}
+{% endmacro %}
+
+{% macro minimum_count(severity, table_name, row_count, column_list) %}
+
+{%- if column_list is none -%}
+{%- set verdict =  table_name ~ 'maximum_count' ~ max_count  | join('_')  | safe_id -%}
+{%- set grouped_columns = table_name ~ 'maximum_count' ~ max_count  | join('_')  | safe_id -%}
+{% else %}
+{%- set verdict =  table_name ~ 'maximum_count' ~ max_count ~ 'by' ~ column_list | join('_')  | safe_id -%}
+{%- set grouped_columns = {{ column_list | join(', ') }} -%}
+{%- endif -%}
+
+{{verdict}} AS (
+    WITH RowCounts AS (
+        SELECT {{ column_list | join(', ')}} 
+        FROM {{table_name}}
+        {{ grouped_columns }}
+        HAVING COUNT(*) > {{ row_count }}
+    )
+    SELECT
+        '{{severity}}: columns {{ (column_list | join(', '))| safe_str }} has row count below minimum threshold' AS reason
+    FROM RowCounts
 )
 ==>
     SELECT reason FROM {{verdict}}

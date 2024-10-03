@@ -19,25 +19,27 @@ For an in-depth guide on how to use SDF tests, please see the Tests section of [
 
 ## SDF Standard Library Tests
 
-| Test Name                      | Type      |
-| ------------------------------ | --------- |
-| [`not_null()`](#not-null)                  | Scalar    |
-| [`valid_scalar(condition)`](#valid-scalar)     | Scalar   |
-| [`valid_aggregate(condition)`](#valid-aggregate)   | Aggregate |
-| [`unique()`](#unique)                     | Aggregate |
-| [`in_accepted_values([values])`](#in-accepted-values) | Aggregate |
-| [`minimum(value)`](#minimum)           | Aggregate |
-| [`maxiumum(value)`](#maximum)              | Aggregate |
-| [`exclusive_minimum(value)`](#exclusive-minimum)     | Aggregate |
-| [`exclusive_maximum(value)`](#exclusive-maximum)     | Aggregate | 
-| [`between(lower, upper)`](#between)        | Aggregate |
-| [`max_length(value)`](#max-length)            | Aggregate |
-| [`min_length(value)`](#min-length)            | Aggregate |
-| [`like(string)`](#like)                 | Aggregate |
-| [`try_cast(type)`](#try-cast)               | Aggregate |
-| [`primary_key(column)`](#primary-key)          | Aggregate |
-| [`unique_columns([c1, c2])`](#unique-columns)| Table    |
-
+| Test Name                                                            | Type      |
+| -------------------------------------------------------------------- | --------- |
+| [`not_null()`](#not-null)                                            | Scalar    |
+| [`valid_scalar(condition)`](#valid-scalar)                           | Scalar    |
+| [`valid_aggregate(condition)`](#valid-aggregate)                     | Aggregate |
+| [`unique()`](#unique)                                                | Aggregate |
+| [`in_accepted_values([values])`](#in-accepted-values)                | Aggregate |
+| [`minimum(value)`](#minimum)                                         | Aggregate |
+| [`maxiumum(value)`](#maximum)                                        | Aggregate |
+| [`exclusive_minimum(value)`](#exclusive-minimum)                     | Aggregate |
+| [`exclusive_maximum(value)`](#exclusive-maximum)                     | Aggregate | 
+| [`between(lower, upper)`](#between)                                  | Aggregate |
+| [`max_length(value)`](#max-length)                                   | Aggregate |
+| [`min_length(value)`](#min-length)                                   | Aggregate |
+| [`like(string)`](#like)                                              | Aggregate |
+| [`try_cast(type)`](#try-cast)                                        | Aggregate |
+| [`primary_key(column)`](#primary-key)                                | Aggregate |
+| [`unique_columns([c1, c2])`](#unique-columns)                        | Table     |
+| [`fresh(reference_value, date_part, value)`](#fresh)                 | Aggregate |
+| [`maximum_count([c1, c2], value)`](#maximum_row_count_by_partitions) | Table     |
+| [`minimum_count([c1, c2], value)`](#maximum_row_count_by_partitions) | Table     |
 
 #### Not Null
 
@@ -232,3 +234,48 @@ table:
     - expect: unique_columns(['a', 'b'])
 ```
 
+#### Fresh
+
+Asserts that a column contains values more recent than a given number of interval compared to a reference value.
+The column and reference must be of the same data type.
+
+**Example:**
+```yaml
+columns:
+  - name: a
+    tests:
+      - expect: fresh('a', current_date(), 1)
+      - expect: fresh('a', current_date(), 1)
+  - name: b
+    tests:
+      - expect: fresh('b', current_timestamp(), 180, 'minute')
+      - expect: fresh('warn', 'b', current_datetime(), 90, 'minute')
+```
+
+#### Maximum Count by Partition
+
+Asserts that a table grouped by a list of columns contains less rows than a threshold value.
+The column and reference must be of the same data type.
+
+**Example:**
+```yaml
+columns:
+  - name: a
+    tests:
+      - expect: maximum_row_count_by_partition('a', current_date(), 1)
+      - expect: maximum_row_count_by_partition('a', current_date(), 1)
+```
+
+#### Minimum Count by Partition
+
+Asserts that a table grouped by a list of columns contains more rows than a threshold value.
+The column and reference must be of the same data type.
+
+**Example:**
+```yaml
+columns:
+  - name: a
+    tests:
+      - expect: maximum_row_count_by_partition('a', current_date(), 1)
+      - expect: maximum_row_count_by_partition('a', current_date(), 1)
+```

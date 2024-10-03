@@ -1,6 +1,6 @@
-# Contributing to sdf-action
+# Contributing to sdf-tests
 
-Thank you for your interest in contributing to `sdf-action`! We welcome contributions from the community and are excited to see what you can bring to the project. Before you get started, please review the guidelines below to ensure a smooth and efficient contribution process.
+Thank you for your interest in contributing to `sdf-tests`! We welcome contributions from the community and are excited to see what you can bring to the project. Before you get started, please review the guidelines below to ensure a smooth and efficient contribution process.
 
 ## PR Labeling Guidelines
 
